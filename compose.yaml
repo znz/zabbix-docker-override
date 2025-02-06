@@ -1,0 +1,11 @@
+name: zabbix-docker
+
+include:
+  - path:
+      - ./zabbix-docker/docker-compose_v3_ubuntu_pgsql_latest.yaml
+      - ./override.yaml
+    project_directory: ./zabbix-docker
+    env_file:
+      - ./zabbix-docker/.env
+      - ./override.env
+      - ./local.env # git update-index --skip-worktree local.env

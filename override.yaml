@@ -1,0 +1,49 @@
+services:
+
+ server-db-init:
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql_override
+     required: false
+   - path: ../env_db_pgsql_override
+     required: false
+
+ postgres-server:
+  env_file:
+   - path: ../env_db_pgsql_override
+     required: false
+
+ zabbix-web-nginx-pgsql:
+  ports: !override # web-nginx in compose_zabbix_components.yaml
+   - name: web-http
+     target: 8080
+     host_ip: "${OVERRIDE_ZABBIX_WEB_NGINX_HTTP_HOST_IP}" # add
+     published: "${ZABBIX_WEB_NGINX_HTTP_PORT}"
+     protocol: tcp
+     app_protocol: http
+   - name: web-https
+     target: 8443
+     host_ip: "${OVERRIDE_ZABBIX_WEB_NGINX_HTTPS_HOST_IP}" # add
+     published: "${ZABBIX_WEB_NGINX_HTTPS_PORT}"
+     protocol: tcp
+     app_protocol: https
+  env_file:
+   - path: ../env_web_override
+     required: false
+
+ zabbix-agent2:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: agent2
+  image: "${ZABBIX_AGENT2_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
+  labels:
+   com.zabbix.os: "${UBUNTU_OS_TAG}"
+  # enable with `--profile agent2` (or `--profile full` or `--profile all`)
+  # profiles:
+  # - agent2
+  # enable without `--profile`
+  profiles: !reset []
+  # Allow access to external networks
+  networks:
+   tools_frontend:
